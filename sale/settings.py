@@ -28,6 +28,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+# TODO: Declaração de apps disponíveis para o projeto
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'basic'
+    'basic.apps.BasicConfig'
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,7 @@ WSGI_APPLICATION = 'sale.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# TODO: campo onde configuramos o acesso ao banco de dados, de acordo o com o driver escolhido
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -84,7 +86,7 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
-
+# TODO: métodos de validação de senhas
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

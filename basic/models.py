@@ -2,6 +2,8 @@ from django.db import models
 
 
 class ModelBase(models.Model):
+    # TODO: Classe que criar opções (enum). Apenas a nível a de modelo será verificado.
+    #  Isso não cria uma contraint do tipo check, por exemplo.
     class Genger(models.TextChoices):
         MALE = ('M', 'Male')
         FEMALE = ('F', 'Female')
@@ -12,6 +14,7 @@ class ModelBase(models.Model):
     active = models.BooleanField(null=False, default=True)
 
     class Meta:
+        # TODO: "abstract = True" significa que esse modelo não será implementado no banco
         abstract = True
 
 
@@ -19,8 +22,11 @@ class Department(ModelBase):
     name = models.CharField(max_length=64, null=False, unique=True)
 
     class Meta:
+        # TODO: Nome da tabela que esse modelo representará no banco de dados
         db_table = 'department'
+        # TODO: "managed = True" significa que o Django irá gerenciar esse modelo em banco
         managed = True
+        # TODO: Aqui podemos adicionar constraints.
 
 
 class MaritalStatus(ModelBase):
