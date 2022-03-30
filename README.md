@@ -65,4 +65,5 @@
 - Realizar dump data para uso no loaddata (precisa estar populado com algum dado):
 
         python manage.py dumpdata nome_app.Model > path_arquivo.json (ou .yaml)
+        python manage.py dumpdata nome_app.Model -o path_arquivo.json (ou .yaml)
         Ex.: python manage.py dumpdata basic.MaritalStatus > ./"Data Migration"/marital_status.json
