@@ -19,4 +19,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('basic/', include('basic.urls'))  # TODO: A rota basic pode ter outro nome
+    path('employee/', include('basic.urls'))
 ]
