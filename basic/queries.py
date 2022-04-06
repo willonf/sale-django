@@ -1,7 +1,7 @@
 from django.db.models import (
     Q, IntegerField, Sum, ExpressionWrapper, F, FloatField, Count, Value, When, Case,
     DateField, DurationField, CharField, Max, Min, Avg)
-from django.db.models.functions import Extract, Now, Cast, ExtractDay, LPad, Upper, Lower
+from django.db.models.functions import Extract, Now, Cast, ExtractDay, LPad, Upper, Lower, Replace
 
 from basic import models
 
@@ -13,6 +13,13 @@ from basic import models
 
 def all_zones():
     zones = models.Zone.objects.all()
+    print(zones)  # Aqui a consulta é realizada, pois a operação foi chamada
+    print(zones.query)  # Exibe a string SQL que ele forma
+    return zones
+
+
+def all_zones_with_limit():
+    zones = models.Zone.objects.all()[:2]  # Aqui realizamos o slice para obter apenas os 10 primeiros registros
     print(zones)  # Aqui a consulta é realizada, pois a operação foi chamada
     print(zones.query)  # Exibe a string SQL que ele forma
     return zones
@@ -450,3 +457,127 @@ def query_total_salary_per_department():
     return models.Employee.objects.select_related('department').values('department__name').annotate(
         sum=Sum('salary')
     ).values('department__name', 'sum')
+
+
+def query_total_salary_per_department_and_gender():
+    return models.Employee.objects.select_related('department').values('department__name', 'gender').annotate(
+        sum=Sum('salary')
+    ).values('department__name', 'sum', 'gender').order_by('department__name')
+
+
+# Exercício 19: fazer uma consulta para retornar o nome do funcionário e o bairro onde ele mora;
+
+def exercicio19():
+    return models.Employee.objects.annotate(
+        bairro=F('district__name')
+    ).values('name', 'bairro')
+
+
+# Exercício 20: Fazer uma consulta para retornar o nome do cliente, cidade e zona que mesmo mora;
+def exercicio20():
+    return models.Customer.objects.annotate(
+        customer_city=F('district__city__name'),
+        customer_zone=F('district__zone__name'),
+    ).values('name', 'customer_city', 'customer_zone')
+
+
+# Exercício 21: Fazer uma consulta para retornar os dados da filial: nome, estado e cidade onde a mesma está localizada;
+
+def exercicio21():
+    return models.Branch.objects.annotate(
+        branch_city=F('district__city__name'),
+        branch_state=F('district__city__state__name'),
+    ).values('name', 'branch_city', 'branch_state')
+
+
+# Exercício 22: fazer uma consulta para retornar os dados do funcionário: nome,
+# departamento onde ele trabalha e qual seu estado civil atual;
+def exercicio22():
+    return models.Employee.objects.annotate(
+        depart=F('department__name')
+    ).values('name', 'depart', 'marital_status__name')
+
+
+# Exercício 23: Fazer uma consulta para retornar o nome do produto,
+# subtotal e quanto deve ser pago de comissão por cada item;
+def exercicio23(quantity):
+    return models.Product.objects.annotate(
+        comissao=(Value(quantity) * F('sale_price') * F('product_group__commission_percentage')) / Value(100)
+    ).values(
+        'name', 'comissao', 'sale_price', 'product_group__commission_percentage')
+
+
+# Exercício 24: fazer uma consulta para retornar o nome do produto, subtotal e quanto foi obtido de lucro por item
+def exercicio24():
+    pass
+
+
+# Exercício 25: ranking dos 10 funcionários mais bem pagos;
+def exercicio25():
+    return models.Employee.objects.order_by('-salary').values('name', 'salary')[:10]
+
+
+# Exercício 26: trazer do décimo primeiro ao vigésimo funcionário mais bem pago;
+def exercicio26():
+    return models.Employee.objects.order_by('-salary').values('name', 'salary')[10:20]
+
+
+# Exercício 27: ranking dos 20 clientes que tem a menor renda mensal;
+def exercicio27():
+    return models.Customer.objects.order_by('income').values('name', 'income')[:20]
+
+
+# Exercício 28: Ranking dos produtos mais caros vendidos no ano de 2021
+def exercicio28():
+    return models.SaleItem.objects \
+        .filter(sale__date__year__exact=2021) \
+        .values('product__name', 'product__sale_price', 'sale__date__year') \
+        .order_by('-product__sale_price')
+
+
+# Exercício 29: Criar uma consulta para trazer o primeiro nome dos funcionários
+# (obs.: remover títulos como Dr., Dra. etc)
+def exercicio29():
+    pass
+    # return models.Employee.objects.annotate(
+    #     first_name=
+    # ).values('name', 'first_name')
+
+
+# Exercício 30: Criar uma consulta para trazer o último nome dos clientes
+
+# Exercício 31: Criar uma consulta para trocar quem tenha "Silva" no nome para "Oliveira"
+def exercicio31():
+    return models.Employee.objects.filter(name__icontains='Silva').annotate(
+        new_name=Replace(
+            expression='name',
+            text=Value('Silva'),
+            replacement=Value('Oliveira')
+        )
+    ).values('name', 'new_name')
+
+
+# models.Employee.objects.select_related('department').values('department__name').annotate(
+#         sum=Sum('salary')
+#     ).values('department__name', 'sum')
+
+# Exercício 32: Criar uma consulta para trazer o total de funcionários por estado civil;
+def exercicio32():
+    return models.Employee.objects \
+        .values('marital_status__name') \
+        .annotate(total=Count('*')) \
+        .values('marital_status__name', 'total')
+
+
+# Exercício 33: Criar uma consulta para trazer o total vendido em valor R$ por filial;
+def exercicio33():
+    return models.SaleItem.objects \
+        .select_related('sale__branch') \
+        .values('sale__branch__name') \
+        .annotate(
+        total=Sum(ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField()))
+    ).values('sale__branch__name', 'total')
+
+# Exercício 34: Criar uma consulta para trazer o total vendido em valor R$ por zona;
+
+# Exercício 35: Criar uma consulta para trazer o total vendido em valor R$ por estado;

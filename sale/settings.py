@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'basic.apps.BasicConfig'
+    'basic.apps.BasicConfig',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -136,15 +137,24 @@ LOGGING = {
         #     'level': 'DEBUG',
         #     'handlers': ['console'],
         # },
-        'django': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            # 'propagate': False
-        },
+        # 'django': {
+        #     'level': 'DEBUG',
+        #     'handlers': ['console'],
+        #     'propagate': False
+        # },
         'django.request': {
             'level': 'DEBUG',
             'handlers': ['console'],
-            # 'propagate': False
+             # 'propagate': False
         }
     }
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'COERCE_DECIMAL_TO_STRING': False,
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+    )
 }
