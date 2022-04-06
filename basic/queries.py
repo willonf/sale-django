@@ -1,7 +1,7 @@
 from django.db.models import (
     Q, IntegerField, Sum, ExpressionWrapper, F, FloatField, Count, Value, When, Case,
-    DateField, DurationField, Func)
-from django.db.models.functions import Extract, Now, Cast, ExtractDay, ExtractYear
+    DateField, DurationField, CharField, Max, Min, Avg)
+from django.db.models.functions import Extract, Now, Cast, ExtractDay, LPad, Upper, Lower
 
 from basic import models
 
@@ -371,3 +371,82 @@ def exercicio17():
             default=Value('Não identificado')
         )
     ).values('name', 'work_age', 'status')
+
+
+# Prefetch related:
+def query_prefetch_related():
+    return models.Department.objects.prefetch_related(
+        'employees').filter(
+        employees__salary__gte=2000
+    ).values(
+        'name',
+        'employees__name'
+    )
+
+
+# Lpad
+def query_lpad():
+    return models.Employee.objects.annotate(
+        code=LPad(
+            expression=Cast(F('id'), output_field=CharField()),
+            length=5,
+            fill_text=Value('0'))
+    ).values('code', 'id')
+
+
+# UpperCase e LowerCase
+def query_upper_case():
+    return models.Employee.objects.annotate(
+        _upper=Upper('name'),
+        _lower=Lower('name')
+    ).values('name', '_upper', '_lower')
+
+
+# TODO: FUNÇÕES DE AGRUPAMENTO
+
+def query_max_employee_salary():
+    # Aggregate: vai agregar os dados de Employee. Já é executado na declaração,
+    # mas é possível mudar esse comportamento nos settings.
+    # Deve ser chamado no final da query.
+    # Geralmente não é utilizado para agrupar, pois não retorna um queryset.
+    # O ideal é utilizar quando queremos retornar um valor único apenas
+    return models.Employee.objects.aggregate(
+        max=Max('salary')
+    )
+
+
+def query_min_employee_salary():
+    # Aggregate: vai agregar os dados de Employee
+    return models.Employee.objects.aggregate(
+        min=Min('salary')
+    )
+
+
+def query_avg_employee_salary():
+    # Aggregate: vai agregar os dados de Employee
+    return models.Employee.objects.aggregate(
+        average=Avg('salary')
+    )
+
+
+def query_count_employee_salary():
+    # Aggregate: vai agregar os dados de Employee
+    return models.Employee.objects.aggregate(
+        count=Count('salary')
+    )
+
+
+def query_count_employee_female_salary():
+    # Aggregate: vai agregar os dados de Employee
+    return models.Employee.objects.filter(gender=models.ModelBase.Gender.FEMALE).aggregate(
+        count=Count('*')
+    )
+
+
+# TODO: group by - essa cláusula é feita na query inserindo um value() antes do annotate
+# Exercício 18: consulta para saber a soma dos salários por departamento
+def query_total_salary_per_department():
+    # O select_related foi usado para não haver duplicidade na consulta
+    return models.Employee.objects.select_related('department').values('department__name').annotate(
+        sum=Sum('salary')
+    ).values('department__name', 'sum')
