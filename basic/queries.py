@@ -1,6 +1,6 @@
 from django.db.models import (
     Q, IntegerField, Sum, ExpressionWrapper, F, FloatField, Count, Value, When, Case,
-    DateField, DurationField, CharField, Max, Min, Avg)
+    DateField, DurationField, CharField, Max, Min, Avg, OuterRef, Subquery, Exists)
 from django.db.models.functions import Extract, Now, Cast, ExtractDay, LPad, Upper, Lower, Replace
 
 from basic import models
@@ -51,6 +51,11 @@ def ordered_employees_by_salary():
 # Values: diferente dos outros métodos (que retornam um queryset), .values() retorna uma lista de dicionários.
 def employees_id_name():
     return models.Employee.objects.values('id', 'name')
+
+
+# Distinct
+def query_distinct():
+    return models.SaleItem.objects.values('product__name').order_by('product__name').distinct()
 
 
 # É possível combinar funções: .filter().values()
@@ -466,7 +471,6 @@ def query_total_salary_per_department_and_gender():
 
 
 # Exercício 19: fazer uma consulta para retornar o nome do funcionário e o bairro onde ele mora;
-
 def exercicio19():
     return models.Employee.objects.annotate(
         bairro=F('district__name')
@@ -482,7 +486,6 @@ def exercicio20():
 
 
 # Exercício 21: Fazer uma consulta para retornar os dados da filial: nome, estado e cidade onde a mesma está localizada;
-
 def exercicio21():
     return models.Branch.objects.annotate(
         branch_city=F('district__city__name'),
@@ -493,23 +496,46 @@ def exercicio21():
 # Exercício 22: fazer uma consulta para retornar os dados do funcionário: nome,
 # departamento onde ele trabalha e qual seu estado civil atual;
 def exercicio22():
-    return models.Employee.objects.annotate(
-        depart=F('department__name')
-    ).values('name', 'depart', 'marital_status__name')
+    return models.Employee.objects.values('name', 'department__name', 'marital_status__name')
 
 
-# Exercício 23: Fazer uma consulta para retornar o nome do produto,
-# subtotal e quanto deve ser pago de comissão por cada item;
-def exercicio23(quantity):
-    return models.Product.objects.annotate(
-        comissao=(Value(quantity) * F('sale_price') * F('product_group__commission_percentage')) / Value(100)
-    ).values(
-        'name', 'comissao', 'sale_price', 'product_group__commission_percentage')
+# Exercício 23: Fazer uma consulta para retornar o nome do produto vendido,
+# o preço unitário e o subtotal;
+def exercicio23():
+    # Sem agrupamento de produto:
+    # return models.SaleItem.objects \
+    #     .annotate(subtotal=ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField())) \
+    #     .values('product__name', 'product__sale_price', 'subtotal')
+
+    # Agrupando por produto:
+    return models.SaleItem.objects \
+        .annotate(subtotal=ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField())) \
+        .values('product__name') \
+        .annotate(total=Sum('subtotal')) \
+        .values('product__name', 'product__sale_price', 'total')
+
+
+# Exercício: fazer uma consulta para retornar o nome do produto,
+# subtotal e quanto deve ser pago de comissão por  cada item
+def query_comission():
+    return models.SaleItem.objects \
+        .annotate(
+        subtotal=ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField()),
+        commission=ExpressionWrapper(F('subtotal') * (F('product__product_group__commission_percentage') / 100),
+                                     output_field=FloatField())) \
+        .values('product__name', 'product__sale_price', 'subtotal',
+                'product__product_group__commission_percentage', 'commission')
 
 
 # Exercício 24: fazer uma consulta para retornar o nome do produto, subtotal e quanto foi obtido de lucro por item
 def exercicio24():
-    pass
+    return models.SaleItem.objects \
+        .annotate(
+        subtotal=ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField()),
+        gain=ExpressionWrapper(F('subtotal') * (F('product__product_group__gain_percentage') / 100),
+                               output_field=FloatField())) \
+        .values('product__name', 'product__sale_price', 'subtotal',
+                'product__product_group__gain_percentage', 'gain')
 
 
 # Exercício 25: ranking dos 10 funcionários mais bem pagos;
@@ -557,14 +583,11 @@ def exercicio31():
     ).values('name', 'new_name')
 
 
-# models.Employee.objects.select_related('department').values('department__name').annotate(
-#         sum=Sum('salary')
-#     ).values('department__name', 'sum')
-
 # Exercício 32: Criar uma consulta para trazer o total de funcionários por estado civil;
 def exercicio32():
     return models.Employee.objects \
-        .values('marital_status__name') \
+        .select_related('marital_status') \
+        .values('marital_status') \
         .annotate(total=Count('*')) \
         .values('marital_status__name', 'total')
 
@@ -575,9 +598,68 @@ def exercicio33():
         .select_related('sale__branch') \
         .values('sale__branch__name') \
         .annotate(
-        total=Sum(ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField()))
-    ).values('sale__branch__name', 'total')
+        total=Sum(ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField()))) \
+        .values('sale__branch__name', 'total')
+
 
 # Exercício 34: Criar uma consulta para trazer o total vendido em valor R$ por zona;
+def exercicio34():
+    return models.SaleItem.objects \
+        .select_related('sale__branch__district__zone') \
+        .annotate(subtotal=ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField())) \
+        .values('sale__branch__district__zone') \
+        .annotate(total=Sum('subtotal')) \
+        .values('sale__branch__district__zone__name', 'total')
+
 
 # Exercício 35: Criar uma consulta para trazer o total vendido em valor R$ por estado;
+def exercicio35():
+    return models.SaleItem.objects \
+        .annotate(
+        subtotal=ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField()),
+        state_field=F('sale__branch__district__city__state__name')) \
+        .values('state_field') \
+        .annotate(total=Sum('subtotal')) \
+        .values('state_field', 'total')
+
+
+# Exercício 36: Criar uma consulta para trazer o total vendido em valor R$ por ano
+def exercicio36():
+    return models.SaleItem.objects.values(
+        'sale__date'
+    ).annotate(
+        subtotal=Sum(ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField()))
+    ).values(
+        'sale__date__year', 'subtotal'
+    )
+
+
+# TODO: Subqueries
+# Exercicio: retornar a lista de produtos e a última vez em que cada um foi vendido
+def query_last_sale_of_each_product():
+    # O OuterRef é uma referência externa, de outra consulta.
+    # Ex.: abaixo, o campo 'id' em OuterRef não é o id de SaleItem
+    sbq = models.SaleItem.objects.select_related('sale').filter(product=OuterRef('id')).values('sale__date').order_by(
+        '-sale__date')[:1]
+    return models.Product.objects.annotate(
+        last_sale=Subquery(sbq)  # Aqui, o OuterRef vai entender que o parâmetro id passado, é o id de Product
+    ).values('id', 'name', 'last_sale')
+
+
+# Exercício: retornar a uma lista que mostre se o produto foi vendido ou não em 2020
+def sale_products_2020():
+    sbq = models.SaleItem.objects.filter(product=OuterRef('id')).filter(sale__date__year=2020)[:1]
+    # O Slice acima foi usado, pois basta ter um registro daquela venda em 2020 para atender a condição
+    return models.Product.objects.annotate(
+        exists=Exists(sbq)
+    ).values('id', 'name', 'exists')
+    # Podemos também adicionar um .filter(exists=True) ou .filter(exists=False)
+    # para exibir apenas as que tiveram vendas (ou não)
+
+
+# Exercício: retornar a uma lista que mostre se o produto foi vendido ou não em 2020 (utilizando IN)
+
+def sale_products_2020_in():
+    sbq = models.SaleItem.objects.filter(sale__date__year=2020).values_list('product', flat=True).distinct()
+    # O values_list vai retornar uma lista de id's de produtos. O flat=True retira a chave do dicionário
+    return models.Product.objects.filter(id__in=sbq).values('id', 'name').order_by('-name')
