@@ -9,7 +9,7 @@ from basic import models
 # TODO: Consultas no banco
 # O valor armazenado em 'zones' é um QuerySet, uma classe do django cuja função é armazenar consultas.
 #  É um iterator. Só é executado quando ocorre alguma operação que utilize o QuerySet
-
+# Quando as queries são muito complexas, o ideal é criar um behavior ou inserir no Manager do model
 
 def all_zones():
     zones = models.Zone.objects.all()
@@ -455,7 +455,7 @@ def query_count_employee_female_salary():
     )
 
 
-# TODO: group by - essa cláusula é feita na query inserindo um value() antes do annotate
+# TODO: group by - essa cláusula é feita na query inserindo um values() antes do annotate
 # Exercício 18: consulta para saber a soma dos salários por departamento
 def query_total_salary_per_department():
     # O select_related foi usado para não haver duplicidade na consulta
@@ -624,14 +624,15 @@ def exercicio35():
 
 
 # Exercício 36: Criar uma consulta para trazer o total vendido em valor R$ por ano
-def exercicio36():
+def total_sold_by_year():
     return models.SaleItem.objects.values(
-        'sale__date'
+        'sale__date__year'
     ).annotate(
-        subtotal=Sum(ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField()))
+        subtotal=Sum(ExpressionWrapper(F('quantity') * F('product__sale_price'), output_field=FloatField())),
+        year=F('sale__date__year')
     ).values(
-        'sale__date__year', 'subtotal'
-    )
+        'year', 'subtotal'
+    ).order_by('-year')
 
 
 # TODO: Subqueries

@@ -24,7 +24,8 @@ SECRET_KEY = 'django-insecure-t&5$2#-@6mbri33+5qg9ak(sqm9u$e@_gr@6zq8-u%-hp(zvmw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# TODO: host com permissão para acessar a API. Em ambiente deddesenvolvimento, pode-se deixar livre para todos
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -37,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'basic.apps.BasicConfig',
-    'django_filters'
+    'django_filters',  # TODO: Django Filters setting
+    'rest_framework',  # TODO: Django Rest setting
 ]
 
 MIDDLEWARE = [
@@ -149,10 +151,12 @@ LOGGING = {
         }
     }
 }
-
+# TODO: Configuração de paginação automática do Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    # Configuração para retornar os valores numéricos como números e não como string
     'COERCE_DECIMAL_TO_STRING': False,
+    # TODO: Django Filters backend setting
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.OrderingFilter',

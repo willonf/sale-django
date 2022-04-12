@@ -1,5 +1,7 @@
 from django.db import models
 
+from basic import managers
+
 
 class ModelBase(models.Model):
     # TODO: Classe que criar opções (enum). Apenas a nível a de modelo será verificado.
@@ -56,9 +58,9 @@ class Zone(ModelBase):
     class Meta:
         db_table = 'zone'
         managed = True
-
-    def __str__(self):
-        return self.name
+    #
+    # def __str__(self):
+    #     return self.name
 
 
 class State(ModelBase):
@@ -196,8 +198,11 @@ class Employee(ModelBase):
         db_table = 'employee'
         managed = True
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
+
+    def increase_salary(self, percentage):
+        self.salary += self.salary * (percentage / 100)
 
 
 class Branch(ModelBase):
@@ -282,6 +287,10 @@ class SaleItem(ModelBase):
         null=False
     )
     quantity = models.DecimalField(max_digits=16, decimal_places=3, null=False)
+
+    # TODO: Associando manager customizado. Obs.: não substitui os métodos padrões do manager
+    # objects = path_to_a_queryset.as_manager()
+    objects = managers.SaleItemManager()
 
     class Meta:
         db_table = 'sale_item'
