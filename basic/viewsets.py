@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django_filters import rest_framework as django_filter
-from basic import models, serializers, serializers_params, queries, serializers_results, filters
+
+from basic import models, serializers, serializers_params, serializers_results, filters
 
 
 # TODO: Métodos padrões do viewset. Podem ser sobrescritos
@@ -60,6 +60,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = models.Employee.objects.all()
     serializer_class = serializers.EmployeeSerializer
+    filter_class = filters.EmployeeFilter
 
     # O ideal é que não haja processamento envolvendo regras de negócio no viewset
     # O ideal é colocar isso em outro lugar (actions, behaviors, models, etc)
@@ -83,8 +84,22 @@ class MaritalStatusViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = models.Product.objects.all()
+    # select_related applicado por conta do supplier_obj no serializer
+    queryset = models.Product.objects.select_related('supplier').all()
+
+    # queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer
+    filter_class = filters.ProductiFilter
+
+    # Outras opções para utilizar por conta do select_related
+    # def list(self, request, *args, **kwargs):
+    #     self.queryset = self.queryset.select_related('supplier')
+    #     self.serializer_class = serializers.ProductListSerializer
+    #     return super(ProductViewSet, self).list(request, *args, *kwargs)
+    #
+    # def retrieve(self, request, *args, **kwargs):
+    #     self.queryset = self.queryset.select_related('supplier')
+    #     return super(ProductViewSet, self).list(request, *args, *kwargs)
 
 
 class ProductGroupViewSet(viewsets.ModelViewSet):
@@ -116,6 +131,12 @@ class SupplierViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.SupplierSerializer
 
 
+#
+#     def list(self, request, *args, **kwargs):
+#         self.queryset = self.queryset.prefetch_related('product_set')
+#         return super(SupplierViewSet, self).list(request, *args, **kwargs)
+
+
 class StateViewSet(viewsets.ModelViewSet):
     queryset = models.State.objects.all()
     serializer_class = serializers.StateSerializer
@@ -128,7 +149,8 @@ class ZoneViewSet(viewsets.ModelViewSet):
     ordering = ('-id',)
     # Para ordenar qualquer campo na url: .../zone/?ordering=-name ou .../zone/?ordering=name
     ordering_fields = '__all__'
-    # OBS.: os orderings são usados na queryset padrão (linha 125, nesse caso) do viewset
+
+    # OBS.: os orderings são usados na queryset padrão do viewset
 
     @action(detail=False, methods=['GET'])
     def get_zone_by_name1(self, request, *args, **kwargs):

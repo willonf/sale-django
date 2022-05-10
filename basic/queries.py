@@ -385,7 +385,9 @@ def exercicio17():
     ).values('name', 'work_age', 'status')
 
 
-# Prefetch related:
+# Prefetch related: Usado no "lado" N das relaões
+# "Department" pode conter N "Employee": usar prefetch_related
+# "Employee" pode conter 1 "Department": usar select_related
 def query_prefetch_related():
     return models.Department.objects.prefetch_related(
         'employees').filter(

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from basic import models
+from rest_flex_fields import FlexFieldsModelSerializer
 
 
 # TODO: Custom fields serializer
@@ -78,12 +79,6 @@ class MaritalStatusSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Product
-        fields = '__all__'
-
-
 class ProductGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProductGroup
@@ -102,10 +97,43 @@ class SaleItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SupplierSerializer(serializers.ModelSerializer):
+# class ProductListSerializer(serializers.ModelSerializer):
+#     # TODO: "Expand" manual apenas para listagem
+#     class Meta:
+#         model = models.Product
+#         fields = ['id', 'name']
+
+
+class SupplierSerializer(FlexFieldsModelSerializer):  # para usar o expand, herdar FlexFieldsModelSerializer
+    # class SupplierSerializer(serializers.ModelSerializer):
+    # products = ProductListSerializer(source='product_set', many=True, read_only=True)
+    # Para a busca acima ser performática, sobrescrever o método list() no serializer de supplier com o select_related
+
     class Meta:
         model = models.Supplier
         fields = '__all__'
+        # O expand, por padrão não realiza os joins corretamente, causando problema de performance
+
+    expandable_fields = {
+        'product': ('basic.ProductSerializer',
+                    {'source': 'product_set', 'many': True})
+        # source obrigatório quando o nome do campo a ser expandido é diferente do source ('product' != 'product_set')
+    }
+
+
+class ProductSerializer(FlexFieldsModelSerializer):
+    # class ProductSerializer(serializers.ModelSerializer):
+    # TODO: "Expand" manual (entretanto, com JOIN errado na consulta)
+    # Usando a forma abaixo, para cada produto na busca, ele fará outra busca para saber o supplier correspondente
+    # supplier_obj = SupplierSerializer(source='supplier', read_only=True)
+
+    class Meta:
+        model = models.Product
+        fields = '__all__'
+
+    expandable_fields = {
+        'product_group': ('basic.ProductGroupSerializer', )
+    }
 
 
 class StateSerializer(serializers.ModelSerializer):
@@ -133,7 +161,7 @@ class Zone2Serializer(serializers.Serializer):
     active = serializers.BooleanField(required=False, default=True)
     name = serializers.CharField(required=True, max_length=64)
 
-    # O métodos abaixos são chamados automaticamente por debaixo dos panos
+    # O métodos abaixo são chamados automaticamente por "debaixo dos panos"
 
     def validate(self, attrs):
         if not attrs.get('name').isupper():
