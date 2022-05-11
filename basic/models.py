@@ -287,6 +287,15 @@ class SaleItem(ModelBase):
         null=False
     )
     quantity = models.DecimalField(max_digits=16, decimal_places=3, null=False)
+    # O preço do produto deve ser persistido aqui, pois caso haja atualização do preço do produto
+    # o valor da venda estará incorreto.
+    # Para isso, podemos usar um receiver. Sempre que um SaleItem for criado, ele salva o preço do produto
+    product_price = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        null=False,
+        default=0
+    )
 
     # TODO: Associando manager customizado. Obs.: não substitui os métodos padrões do manager
     # objects = path_to_a_queryset.as_manager()

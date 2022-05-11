@@ -67,3 +67,8 @@
         python manage.py dumpdata nome_app.Model > path_arquivo.json (ou .yaml)
         python manage.py dumpdata nome_app.Model -o path_arquivo.json (ou .yaml)
         Ex.: python manage.py dumpdata basic.MaritalStatus > ./"Data Migration"/marital_status.json
+
+## Receivers
+
+- São gatilhos (triggers) que são ativados antes ou depois de uma operação sobre os modelos;
+- São mecanismos síncronos

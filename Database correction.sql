@@ -15,3 +15,7 @@ select setval('zone_id_seq', (select max(a.id) from zone a), TRUE);
 select setval('sale_id_seq', (select max(a.id) from sale a), TRUE);
 select setval('sale_item_id_seq', (select max(a.id) from sale_item a), TRUE);
 select setval('state_id_seq', (select max(a.id) from state a), TRUE);
+
+update sale_item si set product_price = (
+    select sale_price from product where product.id = si.id_product
+    ) where si.product_price = 0;

@@ -9,3 +9,8 @@ class BasicConfig(AppConfig):
     name = 'basic'
     # Nome "Human-readable" da aplicação
     verbose_name = 'Basic'
+
+    # TODO: Sobrescrita do método ready() para os receivers serem carregados
+    def ready(self):
+        import basic.receivers
+        super(BasicConfig, self).ready()
