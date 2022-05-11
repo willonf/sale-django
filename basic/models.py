@@ -267,6 +267,8 @@ class Sale(ModelBase):
         db_column='id_branch',
         null=False
     )
+    # Associando manager customizado. Obs.: não substitui os métodos padrões do manager
+    objects = managers.SaleManager()
 
     class Meta:
         db_table = 'sale'

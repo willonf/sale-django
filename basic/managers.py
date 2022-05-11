@@ -1,10 +1,10 @@
-from django.db import models
-from django.db.models import (Sum, ExpressionWrapper, F, FloatField)
+from django.db.models import Manager, ExpressionWrapper, Sum, FloatField, F
+from django.db.models.functions import ExtractYear, ExtractMonth
 
 
 # TODO: Manager customizado.
 # Deve ser associado ao manager do model especificado
-class SaleItemManager(models.Manager):
+class SaleItemManager(Manager):
     def sold_by_year(self):
         return self.get_queryset().values(
             'sale__date__year'
@@ -14,3 +14,20 @@ class SaleItemManager(models.Manager):
         ).values(
             'year', 'subtotal'
         ).order_by('-year')
+
+
+class SaleManager(Manager):
+
+    def actives(self):
+        return self.get_queryset().filter(active=True)
+
+    def by_year(self):
+        return self.get_queryset().prefetch_related('saleitem_set').annotate(
+            year=ExtractYear('date'),
+            month=ExtractMonth('date'),
+        ).values('year', 'month').annotate(
+            total=Sum(ExpressionWrapper(
+                F('saleitem__quantity') * F('saleitem__product__sale_price'),
+                output_field=FloatField()
+            )),
+        ).values('year', 'month', 'total').order_by('-year', '-month')

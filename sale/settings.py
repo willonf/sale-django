@@ -135,19 +135,19 @@ LOGGING = {
         }
     },
     'loggers': {
-        # 'django.db.backends': {
-        #     'level': 'DEBUG',
-        #     'handlers': ['console'],
-        # },
-        # 'django': {
-        #     'level': 'DEBUG',
-        #     'handlers': ['console'],
-        #     'propagate': False
-        # },
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'django': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            # 'propagate': False
+        },
         'django.request': {
             'level': 'DEBUG',
             'handlers': ['console'],
-             # 'propagate': False
+            # 'propagate': False
         }
     }
 }
@@ -162,3 +162,11 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     )
 }
+
+# TODO: Configuração do Celery
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'  # '/0': database (do tipo chave-valor) padrão do Redis
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_ENABLE_UTC = True
+CELERY_TIMEZONE = 'America/Manaus'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'

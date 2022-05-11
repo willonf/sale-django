@@ -1,8 +1,9 @@
+from kombu.exceptions import OperationalError
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from basic import models, serializers, serializers_params, serializers_results, filters
+from kombu import BrokerConnection
+from basic import models, serializers, serializers_params, serializers_results, filters, tasks
 
 
 # TODO: Métodos padrões do viewset. Podem ser sobrescritos
@@ -124,6 +125,19 @@ class SaleItemViewSet(viewsets.ModelViewSet):
         serialized_queryset = serializers_results.SoldByYearSerializer(instance=queryset, many=True,
                                                                        context=self.get_serializer_context())
         return Response(data=serialized_queryset.data, status=200)
+
+    # Using Celery queue
+    @action(methods=['GET'], detail=False)
+    def sold_by_year2(self, request, *args, **kwargs):
+        # O apply_async() é o método que informar o redis que a task deve ser iniciada
+        # O apply_async() também aceita parâmetros, dentro de uma lista. Ex.: [1, "id_user"]
+        # countdown: Delay em segundos para executar a task. Ex.: countdown=5
+        # Caso seja necessário debugar: tasks.sale_by_year_to_a_file() e debuga-se dentro do método
+        try:
+            tasks.sale_by_year_to_a_file.apply_async([])
+        except OperationalError as error:
+            raise Exception(f'Broker connection error:\n{error}')
+        return Response(status=200)
 
 
 class SupplierViewSet(viewsets.ModelViewSet):
