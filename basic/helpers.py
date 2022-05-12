@@ -1,4 +1,6 @@
 from django.db import connections, OperationalError
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 # TODO: função para executar strings de consultas SQL (atenção para SQL Injections)
@@ -22,3 +24,11 @@ def execute_query(query: str, many=True):
         return rows if many else rows[0] if len(rows) > 0 else None
     except OperationalError:
         raise Exception('Query error')
+
+
+def send_channel_message(group: str, content: dict):
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(group, {
+        'type': 'group.message',
+        'content': content
+    })

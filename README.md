@@ -84,3 +84,8 @@ Obs.: A flag --pool é obrigatório no Windows
         celery -A sale worker --loglevel=INFO --pool=gevent -Q default
         celery -A sale worker --loglevel=DEBUG --pool=gevent -Q default
         celery -A sale worker --loglevel=DEBUG --pool=gevent -Q default --concurrency=10
+
+
+## Websoscket
+- Biblioteca websocket client: websocket-client
+- Utilizado em chats, notificações

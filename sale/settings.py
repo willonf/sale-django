@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from corsheaders.defaults import default_methods
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'basic.apps.BasicConfig',
     'django_filters',  # TODO: Django Filters setting
     'rest_framework',  # TODO: Django Rest setting
+    'channels',  # TODO: Websocket setting
 ]
 
 MIDDLEWARE = [
@@ -50,7 +52,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # TODO: Configuração do Websocket
 ]
+
+# TODO: Configuração do Websocket
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_METHODS = default_methods
 
 ROOT_URLCONF = 'sale.urls'
 
@@ -71,6 +79,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'sale.wsgi.application'
+ASGI_APPLICATION = 'sale.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -164,9 +173,20 @@ REST_FRAMEWORK = {
 }
 
 # TODO: Configuração do Celery
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'  # '/0': database (do tipo chave-valor) padrão do Redis
+# '/0': database (do tipo chave-valor) padrão do Redis
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = 'America/Manaus'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+# TODO: Configuração do Websocket
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)]
+        }
+    }
+}
