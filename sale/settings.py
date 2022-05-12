@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django_filters',  # TODO: Django Filters setting
     'rest_framework',  # TODO: Django Rest setting
     'channels',  # TODO: Websocket setting
+    'rest_framework.authtoken'  # TODO: Autenticação. Aplicar migrations
 ]
 
 MIDDLEWARE = [
@@ -89,7 +90,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'sale',
-        'HOST': 'localhost',
+        'HOST': 'localhost',  # TODO: Alterar para serviço dentro do container no build da imagem
         'PORT': '5432',
         'USER': 'postgres',
         'PASSWORD': '123456'
@@ -169,7 +170,14 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.OrderingFilter',
-    )
+    ),
+    # TODO: Classes utilizada para autenticações
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSIONS_CLASSES': (
+        'rest_framework.permissions.DjangoModelPermissions',
+    ),
 }
 
 # TODO: Configuração do Celery
@@ -186,7 +194,13 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
+            # TODO: Alterar para serviço dentro do container no build da imagem. Ex.: redis
             'hosts': [('127.0.0.1', 6379)]
         }
     }
 }
+
+# TODO: Configuração de autenticação
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
