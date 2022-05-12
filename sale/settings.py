@@ -89,7 +89,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'sale',
-        'HOST': 'localhost',
+        'HOST': 'locahost',  # TODO: Alterar para serviço dentro do container no build da imagem
         'PORT': '5432',
         'USER': 'postgres',
         'PASSWORD': '123456'
@@ -186,6 +186,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
+            # TODO: Alterar para serviço dentro do container no build da imagem. Ex.: redis
             'hosts': [('127.0.0.1', 6379)]
         }
     }

@@ -1,4 +1,4 @@
-FROM python:3.8.6-slim as dependencies
+FROM python:3.9-slim as dependencies
 
 ENV APP_PATH /usr/src/app
 ENV TIMEZONE 'America/Manaus'
@@ -17,7 +17,7 @@ RUN mkdir -p $APP_PATH \
     libpq-dev \
     python-dev \
     libsasl2-dev \
-    libldap2-dev \
+#    libldap2-dev \
     libssl-dev \
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/* \
