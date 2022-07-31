@@ -15,8 +15,24 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import permissions
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+
+
+openapi_view = get_schema_view(
+    openapi.Info(
+        title='Sale API',
+        default_version='1.0.0',
+        description='Sale API Documentation',
+    ),
+    public=False,
+    permission_classes=[permissions.AllowAny]
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('basic/', include('basic.urls'))  # TODO: A rota basic pode ter outro nome
+    # TODO: A rota basic pode ter outro nome
+    path('basic/', include('basic.urls')),
+    path('apidoc/', openapi_view.with_ui('swagger', cache_timeout=0)),
 ]

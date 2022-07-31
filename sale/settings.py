@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 from corsheaders.defaults import default_methods
 
@@ -42,7 +43,8 @@ INSTALLED_APPS = [
     'django_filters',  # TODO: Django Filters setting
     'rest_framework',  # TODO: Django Rest setting
     'channels',  # TODO: Websocket setting
-    'rest_framework.authtoken'  # TODO: Autenticação. Aplicar migrations
+    'rest_framework.authtoken',  # TODO: Autenticação. Aplicar migrations
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
@@ -89,7 +91,7 @@ ASGI_APPLICATION = 'sale.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sale',
+        'NAME': 'sale_django',
         'HOST': 'localhost',  # TODO: Alterar para serviço dentro do container no build da imagem
         'PORT': '5432',
         'USER': 'postgres',
@@ -204,3 +206,16 @@ CHANNEL_LAYERS = {
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
+
+# TODO: Configurações da OpenAPI Specification
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        },
+    },
+    'PERSIST_AUTH': True,
+    'USE_SESSION_AUTH': False,
+    'LOGIN_URL': 'http://localhost:8000/admin/',
+    
+}
