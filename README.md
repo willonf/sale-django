@@ -74,16 +74,20 @@
 - São mecanismos síncronos
 
 
-## Tarefas assíncronas com Celery e Redis
+## Tarefas assíncronas/periódicas com Celery e Redis
 - Redis: message broker usado para se comunicar com o Celery
 - Celery:  sistema de distribuição de tarefas
 - Gevent: gerenciador de thread pools (nativo no linux)
 - Para iniciar um worker (com o Redis up):
 Obs.: A flag --pool é obrigatório no Windows 
-        
+
+        Tarefas assíncronas:
         celery -A sale worker --loglevel=INFO --pool=gevent -Q default
         celery -A sale worker --loglevel=DEBUG --pool=gevent -Q default
         celery -A sale worker --loglevel=DEBUG --pool=gevent -Q default --concurrency=10
+        
+        Tarefas periódicas:
+        celery -A sale beat --loglevel INFO
 
 
 ## Websoscket
